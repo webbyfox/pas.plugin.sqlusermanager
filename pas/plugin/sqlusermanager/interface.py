@@ -1,5 +1,6 @@
 from Products.PluggableAuthService import interfaces
+
+from zope.interface import Interface
   
-class ISqlusermanagerHelper(# -*- implemented plugins -*-
-                                ):
+class ISqlusermanagerHelper(Interface):
     """interface for SqlusermanagerHelper."""

@@ -10,21 +10,95 @@ from Products.PluggableAuthService.utils import classImplements
 import interface
 import plugins
 
-class SqlusermanagerHelper( # -*- implemented plugins -*-
-                               ):
-    """Multi-plugin
+## Imported Class By Riz
+from Products.PluggableAuthService.interfaces.plugins import \
+        IGroupsPlugin, IPropertiesPlugin
 
-    """
+from OFS.Cache import Cacheable
+from AccessControl.SecurityInfo import ClassSecurityInfo
+from AccessControl.SecurityManagement import getSecurityManager
+from zope.interface import Interface
+from OFS.Folder import Folder
 
-    meta_type = 'sqlusermanager Helper'
-    security = ClassSecurityInfo()
+import logging
 
-    def __init__( self, id, title=None ):
-        self._setId( id )
-        self.title = title
+logger = logging.getLogger("pas.plugins.rcsrole")
+
+class SqlusermanagerHelper(BasePlugin, Cacheable, Folder):
+	"""Multi-plugin
+	"""
+	
+	meta_type = 'SQL User Manager'
+	security = ClassSecurityInfo()
+
+	_properties = ( { 'id'    : 'title'
+		, 'label' : 'Title'
+		, 'type'  : 'string'
+		, 'mode'  : 'w'
+			}
+		, {'id'   : 'group_sql'
+		, 'label' : 'SQL Group ZSQL id'
+		, 'type'  : 'string'
+		, 'mode'  : 'w'
+		}
+		,{ 'id'    : 'group_column'
+		, 'label' : 'Group Column Name'
+		, 'type'  : 'string'
+		, 'mode'  : 'w'
+		}
+		,{ 'id'    : 'property_sql'
+		, 'label' : 'Property ZSQL id'
+		, 'type'  : 'string'
+		, 'mode'  : 'w'
+		}
+		
+		)
+	
+	group_sql = 'simsGroupsForUser'
+	group_column = 'web_role'
+	property_sql = 'simsPropertiesForUser'
+	
+	def __init__( self, id,title=None):
+		self._setId( id )
+		self.title = title
+		security = ClassSecurityInfo()
+
+	security.declarePrivate('invalidateCacheForChangedUser')
+	def invalidateCacheForChangedUser(self, user_id):
+		pass        
+
+	security.declarePublic('getGroupsForPrincipal' )
+	
+	def getGroupsForPrincipal(self, principal, request=None):
+		"""Method use to get Groups from SQL Database. simsGroupsForUser is SQL placed in theme product
+		   
+		"""
+		groups = []
+		results = {}
+		if hasattr(self, self.group_sql):
+			results = getattr(self, self.group_sql)(username=principal)
+			
+		for row in results.dictionaries():
+			group = row.get(self.group_column)
+			groups.append(group)
+			
+		return tuple(groups)
+		
+	security.declarePublic('getPropertiesForUser' )
+	def getPropertiesForUser(self, user, request=None):
+		""" Method is used to get property of user. It can be futher extented to achieve different
+		    property of user i.e. email etc"""
+		properties = {}
+		results ={}
+		if hasattr(self, self.property_sql):
+			results = getattr(self,self.property_sql)(username=user)
+		
+		for row in results.dictionaries():
+			properties['fullname'] = row.get('fullname')
+		
+		return properties
 
 
-
-classImplements(SqlusermanagerHelper, interface.ISqlusermanagerHelper)
+classImplements(SqlusermanagerHelper, interface.ISqlusermanagerHelper, IGroupsPlugin, IPropertiesPlugin)
 
 InitializeClass( SqlusermanagerHelper )
