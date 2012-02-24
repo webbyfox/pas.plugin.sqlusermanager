@@ -22,7 +22,7 @@ from OFS.Folder import Folder
 
 import logging
 
-logger = logging.getLogger("pas.plugins.rcsrole")
+logger = logging.getLogger("pas.plugins.sqlusermanager")
 
 class SqlusermanagerHelper(BasePlugin, Cacheable, Folder):
 	"""Multi-plugin
@@ -75,14 +75,23 @@ class SqlusermanagerHelper(BasePlugin, Cacheable, Folder):
 		"""
 		groups = []
 		results = {}
+		
+		# checking user is sims based or not? if not return 
+		try:
+			user = principal.getId().encode('ascii')
+			int(user)
+		except ValueError:
+			return groups
+		
 		if hasattr(self, self.group_sql):
-			results = getattr(self, self.group_sql)(username=principal)
-			
+			results = getattr(self, self.group_sql)(username=user)
+		
+		#import pdb; pdb.set_trace()
 		for row in results.dictionaries():
 			group = row.get(self.group_column)
 			groups.append(group)
 			
-		return tuple(groups)
+		return groups
 		
 	security.declarePublic('getPropertiesForUser' )
 	def getPropertiesForUser(self, user, request=None):
@@ -90,6 +99,14 @@ class SqlusermanagerHelper(BasePlugin, Cacheable, Folder):
 		    property of user i.e. email etc"""
 		properties = {}
 		results ={}
+		
+		# checking user is sims based or not? if not return 
+		try:
+			user = user.getId().encode('ascii')
+			int(user)
+		except ValueError:
+			return properties
+		
 		if hasattr(self, self.property_sql):
 			results = getattr(self,self.property_sql)(username=user)
 		
