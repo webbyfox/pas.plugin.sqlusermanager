@@ -87,9 +87,10 @@ class SqlusermanagerHelper(BasePlugin, Cacheable, Folder):
 			results = getattr(self, self.group_sql)(username=user)
 		
 		#import pdb; pdb.set_trace()
-		for row in results.dictionaries():
-			group = row.get(self.group_column)
-			groups.append(group)
+		if results:
+			for row in results.dictionaries():
+				group = row.get(self.group_column)
+				groups.append(group)
 			
 		return groups
 		
@@ -110,8 +111,9 @@ class SqlusermanagerHelper(BasePlugin, Cacheable, Folder):
 		if hasattr(self, self.property_sql):
 			results = getattr(self,self.property_sql)(username=user)
 		
-		for row in results.dictionaries():
-			properties['fullname'] = row.get('fullname')
+		if results:
+			for row in results.dictionaries():
+				properties['fullname'] = row.get('fullname')
 		
 		return properties
 
