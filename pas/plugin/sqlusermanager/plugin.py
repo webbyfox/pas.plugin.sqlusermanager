@@ -90,7 +90,8 @@ class SqlusermanagerHelper(BasePlugin, Cacheable, Folder):
 		if results:
 			for row in results.dictionaries():
 				group = row.get(self.group_column)
-				groups.append(group)
+				#groups.append(group)
+				groups.append(group.replace(' ','_'))
 			
 		return groups
 		
